@@ -1,0 +1,133 @@
+{
+  "name": "Firecrawl Scrape URL",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "url"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "40cd5ae8-bad4-4c30-9e82-24ae5cc09ad3",
+      "name": "workflow_trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer fc-1e864f5074764cde93493679c2faf0ed"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json.url }}\",\n  \"formats\": [\"json\", \"markdown\", \"rawHtml\", \"links\"],\n  \"excludeTags\": [\"iframe\", \"nav\", \"header\", \"footer\"],\n  \"onlyMainContent\": true,\n  \"timeout\": 200000,\n  \"jsonOptions\": {\n    \"prompt\": \"Identify the main content of the text (i.e., the article or newsletter body). Provide the exact text for that main content verbatim, without summarizing or rewriting any part of it. Exclude all non-essential elements such as banners, headers, footers, calls to action, ads, or purely navigational text. Format this output as markdown using appropriate '#' characters as heading levels. Exclude any promotional or sponsored content on your output. Additionally, you must identify and extract the image urls within this main content. These images must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The images you extract should at least have a width of 600 pixels (px) so it can be included on our content.\",\n    \"schema\": {\n    \"type\": \"object\",\n      \"properties\": {\n        \"content\": {\n          \"type\": \"string\",\n          \"description\": \"The exact verbatim main text content of the web page in markdown format.\"\n        },\n        \"main_content_image_urls\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"description\": \"An image url that appears within the main content of the web page. This image must be inside the main content of the page so you must exclude small logo images, icons, avatars and other images which aren't a core part of the main content. The image should be at least 600px in width.\"\n          },\n          \"description\": \"An array of the exact image urls that appear within the main content of the web page. Extra images such as icons and images not relevant to the main content MUST be excluded.\"\n        }\n      },\n      \"required\": [\"content\", \"main_content_image_urls\"]\n    }\n  }\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 0,
+              "batchInterval": 10000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        304,
+        0
+      ],
+      "id": "13fcf890-3cbb-4349-941c-a27a277093b0",
+      "name": "scrape_url",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "16544627-d13a-4f32-9685-049de005f322",
+              "name": "response",
+              "value": "={{ $json.data.json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        0
+      ],
+      "id": "87103985-149a-4a60-838f-74a65925cb28",
+      "name": "response"
+    }
+  ],
+  "pinData": {
+    "workflow_trigger": [
+      {
+        "json": {
+          "url": "https://www.therundown.ai/p/ai-ads-hit-primetime"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "workflow_trigger": {
+      "main": [
+        [
+          {
+            "node": "scrape_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape_url": {
+      "main": [
+        [
+          {
+            "node": "response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "77031e72-a393-4a7c-81fe-9d2f4869986b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9d442cdc4b607b2fd17d5a386d1b3dc76465ba80c8657f3c7a68bb2d4ca7da33"
+  },
+  "id": "IObRC5DAmjfowrvd",
+  "tags": []
+}
